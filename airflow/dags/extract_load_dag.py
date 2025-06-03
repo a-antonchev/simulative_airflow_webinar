@@ -1,5 +1,6 @@
 """
-To Do
+Extract data from Faker service and write to PostgreSQL.
+MinIO storage is used for caching data.
 """
 
 from datetime import datetime
@@ -20,6 +21,9 @@ logger = logging.getLogger(__name__)
 
 
 def _fetch_from_faker(**context):
+    """
+    Fetch data about a fake person from the Faker service.
+    """
     faker_hook = FakerHook(conn_id="FAKER")
 
     person_dict = faker_hook.get_person()
@@ -37,6 +41,9 @@ def _fetch_from_faker(**context):
 
 
 def _write_to_postgres(**context):
+    """
+    Writes data AS IS to the `person' table of the PostgreSQL database.
+    """
     object_name = context["ti"].xcom_pull(key="object_name")
 
     data_json = MINIO_HOOK.read_key(object_name, BUCKET_NAME)
@@ -54,12 +61,16 @@ def _write_to_postgres(**context):
 
 
 def _cleanup_minio_bucket():
+    """
+    Service task, remove all objects from the MinIO bucket
+    at the end of the processing cycle.
+    """
     objects = MINIO_HOOK.list_keys(BUCKET_NAME)
     MINIO_HOOK.delete_objects(BUCKET_NAME, objects)
 
 
 with DAG(
-    dag_id="simulative_basic_dag_8",
+    dag_id="extract_load_dag",
     start_date=datetime(2025, 1, 1, tzinfo=pytz.timezone("UTC")),
     schedule="*/02 * * * *",
     catchup=False,
@@ -79,7 +90,7 @@ with DAG(
     )
 
     (
-        fetch_from_faker  # type: ignore
+        fetch_from_faker  # type: ignore (for Pylance only)
         >> write_to_postgres
         >> cleanup_minio_bucket
     )

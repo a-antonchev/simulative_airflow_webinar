@@ -1,4 +1,12 @@
-""" """
+"""
+DAG fo transformation data and write to presentation layer (clickhouse DB)
+For conversion, data is selected in chunks (incremental data selection)
+
+Data transformation involves the following steps:
+1. Adding a new characteristic - 'city' and dividing the data by city.
+2. Grouping the data by city with counting the number of records for each city.
+3. Combining the data into a single array.
+"""
 
 from datetime import datetime
 import json
@@ -29,6 +37,10 @@ logger = logging.getLogger(__name__)
 
 
 def _init_last_processed_time():
+    """
+    Initiating a timestamp (last_processed_time) for subsequent
+    incremental downloads
+    """
     if not MINIO_HOOK.check_for_bucket(BUCKET_NAME):
         logger.info(f"Bucket {BUCKET_NAME} not exists, create him.")
         MINIO_HOOK.create_bucket(BUCKET_NAME)
@@ -57,14 +69,16 @@ def _init_last_processed_time():
             f" value={last_processed_time.isoformat()}"
         )
     else:
-        logger.info(
-            "Found lst_processed_time, skip."
-        )
+        logger.info("Found lst_processed_time, skip.")
 
 
 def _check_for_new_data(**context):
-    # проверка на новые данные с момента последней инкрементальной загрузки
-
+    """
+    Task based on the BranchPythonOperator , controls the appearance
+    of a new piece of incremental data.
+    If such data is available, control is transferred to the get_incremental_data
+    task, if there is no data, the DAG goes to the next launch.
+    """
     last_processed_time = get_last_processed_time(MINIO_HOOK, BUCKET_NAME)
     data_interval_end = context["data_interval_end"]
 
@@ -88,10 +102,12 @@ def _check_for_new_data(**context):
     else:
         logger.info("No new data, re-run dag")
         return "re_run_dag"
-    # ----
 
 
 def _get_incremental_data(**context):
+    """
+    Getting incremental data
+    """
     last_processed_time = get_last_processed_time(MINIO_HOOK, BUCKET_NAME)
     data_interval_end = context["data_interval_end"]
 
@@ -174,7 +190,6 @@ def _split_by_cities(**context):
         logger.info(f"Load record to MinIO: key={city}")
 
     logger.info(f"Total city count={len(cities)}")
-    # записать в xcom список обработанных городов
     context["ti"].xcom_push(key="cities", value=cities)
 
 
@@ -266,13 +281,14 @@ def _write_to_clickhouse():
 
 
 with DAG(
-    dag_id="simulative_advanced_dag_7",
+    dag_id="transform_dag",
     start_date=datetime(2025, 1, 1),
     schedule="*/10 * * * *",
     catchup=False,
     tags=["simulative"],
 ) as dag:
     wait_for_data = SqlSensor(
+        # Controls the appearance of any data in the `person' table of the PostgreSQL
         task_id="wait_for_data",
         conn_id="POSTGRES",
         sql="select * from person;",
