@@ -1,7 +1,7 @@
 # ELT с вебинара Simulative Airflow
 
 Полностью переработанный процесс ELT с вебинара Simulative Airflow
-Оригинальный проект расположен [](https://github.com/rushawx/airflowWebinarSimulative)
+Оригинальный проект расположен [здесь](https://github.com/rushawx/airflowWebinarSimulative)
 
 
 ## Файлы проекта:
