@@ -1,0 +1,75 @@
+x-common:
+  &common
+  env_file:
+    - ./.env
+
+services:
+  pg:
+    <<: *common
+    image: postgres:latest
+    container_name: ${POSTGRES_HOST}
+    hostname: ${POSTGRES_HOST}
+    ports:
+      - "5433:5432"
+    healthcheck:
+      test: /usr/bin/pg_isready
+      interval: 10s
+      timeout: 10s
+      retries: 4
+    restart: unless-stopped
+    volumes:
+      - ./init/pg:/docker-entrypoint-initdb.d
+
+  zookeeper:
+    image: zookeeper:latest
+    container_name: zookeeper
+    hostname: zookeeper
+
+  ch:
+    <<: *common
+    image: clickhouse/clickhouse-server:24-alpine
+    container_name: ${CH_HOST}
+    hostname: ${CH_HOST}
+    ports:
+      - "8124:8123"  # HTTP-интерфейс
+      - "9010:9000"  # Native-интерфейс
+    volumes:
+      - ./config/clickhouse/node1:/etc/clickhouse-server
+      - ./init/ch:/docker-entrypoint-initdb.d
+    depends_on:
+      - zookeeper
+    healthcheck:
+      test: wget --no-verbose --tries=1 --spider http://127.0.0.1:8123/ping || exit 1
+      interval: 10s
+      timeout: 10s
+      retries: 4 
+
+  minio:
+    <<: *common
+    image: quay.io/minio/minio
+    container_name: ${MINIO_HOST}
+    command: server /minio_data --console-address ":9002"
+    ports:
+      - "9001:9000"  # Remap MinIO API port
+      - "9002:9001"  # Remap MinIO Console port
+    volumes:
+      - minio_data:/minio_data
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9002/minio/health/live"]
+      interval: 30s
+      timeout: 20s
+      retries: 3
+
+  faker-api:
+    build: fakerApi
+    container_name: ${FAKER_HOST}
+    ports:
+      - "8001:8000"
+    depends_on:
+      pg:
+        condition: service_healthy
+      ch:
+        condition: service_healthy
+
+volumes:
+  minio_data:
