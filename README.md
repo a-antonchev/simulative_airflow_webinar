@@ -6,19 +6,19 @@
 
 ## Файлы проекта:
 
-`./airflow/dags/extract_load_dag.py` - DAG для стадии 'Extract - Load'
-`./airflow/dags/transform_dag.py` - DAG для стадии 'Transform'
-`./fakerApi` - сервис, который генерирует данные о фейковой персоне
-`./init/pg/db.sql` - скрипт инициализации БД PostgreSQL
-`./init/ch/db.sql` - скрипт инициализации БД Clickhouse
-`./config/clickhouse/node1/` - конфигурационные файлы Clickhouse и Zookeeper
-`./Makefile` - набор инструкций make
-`./.env` - переменные окружения проекта
-`./docker-compose-services.yaml` - docker compose для запуска сервисов
-`./docker-compose-af.yaml` - docker compose для запуска Airflow
-`./.pre-commit-config.yaml` - настройки для pre-commit
-`./requirement.txt` - зависимости проекта
-`./pipeline.ipynb` - ноутбук для ручного тестирования процесса ELT
+- `./airflow/dags/extract_load_dag.py` - DAG для стадии 'Extract - Load'
+- `./airflow/dags/transform_dag.py` - DAG для стадии 'Transform'
+- `./fakerApi` - сервис, который генерирует данные о фейковой персоне
+- `./init/pg/db.sql` - скрипт инициализации БД PostgreSQL
+- `./init/ch/db.sql` - скрипт инициализации БД Clickhouse
+- `./config/clickhouse/node1/` - конфигурационные файлы Clickhouse и Zookeeper
+- `./Makefile` - набор инструкций make
+- `./.env` - переменные окружения проекта
+- `./docker-compose-services.yaml` - docker compose для запуска сервисов
+- `./docker-compose-af.yaml` - docker compose для запуска Airflow
+- `./.pre-commit-config.yaml` - настройки для pre-commit
+- `./requirement.txt` - зависимости проекта
+- `./pipeline.ipynb` - ноутбук для ручного тестирования процесса ELT
 
 ## Использование
 
