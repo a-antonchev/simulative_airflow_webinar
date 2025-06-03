@@ -1,0 +1,50 @@
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.5.0
+    hooks:
+      # проверка наличия конфликтов слияния в файлах
+      - id: check-merge-conflict
+      # проверяет и удаляет избыточные пробельные символы в конце строк
+      - id: trailing-whitespace
+        args: [--markdown-linebreak-ext=md]
+      # проверка переноса строки в конце текстовых файлов
+      - id: end-of-file-fixer
+      # проверка toml-файлов
+      - id: check-toml
+      # проверка yaml-файлов
+      - id: check-yaml
+        args: ["--unsafe"]
+      # проверка символических ссылок  
+      - id: check-symlinks
+      # проверка о добавлении больших файлов в git
+      - id: check-added-large-files
+        args: ["--maxkb=3000"]
+      # автоматически исправляет и форматирует файлы requirements.txt перед коммитом в репозиторий
+      - id: requirements-txt-fixer
+      # проверка сохранения приватных ключей
+      - id: detect-private-key
+
+  - repo: https://github.com/psf/black
+    rev: 24.2.0
+    hooks:
+      - id: black
+        args:
+          - --line-length=79
+          - --exclude=/.venv/
+
+#  - repo: https://github.com/google/yapf
+#    rev: v0.40.2  # Use the latest stable version
+#    hooks:
+#    - id: yapf
+#      args:
+#      - --style=pep8
+##      - --line-length=99
+#      - --recursive
+#      - --exclude=.venv/**
+#
+  - repo: https://github.com/PyCQA/flake8
+    rev: 7.0.0
+    hooks:
+      - id: flake8
+        args:
+          - --max-line-length=99
